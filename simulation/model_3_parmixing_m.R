@@ -1,7 +1,5 @@
 library(copula)
 library(stats)
-source('kPCclustering.R')
-
 
 generate_copula <- function(){
     thetabase = copClayton@iTau(0.5)
