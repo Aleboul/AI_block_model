@@ -1,6 +1,6 @@
 # Supplementary code for "High dimensional variable clustering based on maxima of a weakly dependent random process"
 
-This repository contains implementation of the ECO algorithm described in Boulin, Di Bernadino, Laloë and Toulemonde (2024), Section 4 and codes for generating all figures and table therein. 
+This repository contains implementation of the ECO algorithm described in High "dimensional variable clustering based on maxima of a weakly dependent random process", Section 4 and codes for generating all figures and table therein. 
 
 ## File descriptions:
 
