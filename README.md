@@ -1,4 +1,5 @@
-**Repository Description**
+****Repository Description****
+
 This repository contains code and data for replicating experiments and analyses presented in the main paper and supplementary materials. The repository is organized into four main directories:
 
 1. competitors
