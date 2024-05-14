@@ -1,6 +1,5 @@
 library(copula)
 library(stats)
-source('kPCclustering.R')
 
 generate_copula <- function(d, K, seed){
     set.seed(seed)
