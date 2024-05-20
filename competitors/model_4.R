@@ -1,6 +1,5 @@
 source('muscle.R')
 library(MASS)
-#library(wordspace)
 library(skmeans)
 
 X = read.csv(paste('results_model_4/data/data/data_',1,'.csv', sep=''))
