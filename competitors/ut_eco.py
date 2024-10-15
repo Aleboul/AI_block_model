@@ -57,7 +57,7 @@ def SECO(R, clst):
     ------
     float
         The evaluation of the SECO criterion, computed as (theta - theta_Σ), 
-        where theta is the w-madogram of the entire rank matrix and theta_Σ is the sum of w-madograms for each cluster.
+        where theta is the extremal coefficient and theta_Σ is the sum of extremal coefficients for each cluster.
     """
 
     # d is the number of rows (samples) in the rank matrix R
