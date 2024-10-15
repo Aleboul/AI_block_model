@@ -21,13 +21,13 @@ for mixing in char_mixing:
 
         exact_recov_rate_ECO_200 = DF_ECO_200.mean(axis=1)
         exact_recov_rate_ECO_1600 = DF_ECO_1600.mean(axis=1)
-        exact_recov_rate_HC_1600 = DF_HC_1600.mean(axis=1)
-        exact_recov_rate_SKmeans_1600 = DF_SKmeans_1600.mean(axis=1)
+        #exact_recov_rate_HC_1600 = DF_HC_1600.mean(axis=1)
+        #exact_recov_rate_SKmeans_1600 = DF_SKmeans_1600.mean(axis=1)
 
-        axis[index].plot(k, exact_recov_rate_HC_1600, marker='P', linestyle='solid',
-                         markerfacecolor='#B6BFE0', label='Oracle-HC-1600', c='#6E7FC2')
-        axis[index].plot(k, exact_recov_rate_SKmeans_1600, marker='*', linestyle='solid',
-                         markerfacecolor='#C0CCC5', label='Oracle-SKmeans-1600', c='#819A8C')
+        #axis[index].plot(k, exact_recov_rate_HC_1600, marker='P', linestyle='solid',
+        #                 markerfacecolor='#B6BFE0', label='Oracle-HC-1600', c='#6E7FC2')
+        #axis[index].plot(k, exact_recov_rate_SKmeans_1600, marker='*', linestyle='solid',
+        #                 markerfacecolor='#C0CCC5', label='Oracle-SKmeans-1600', c='#819A8C')
         axis[index].plot(k, exact_recov_rate_ECO_200, marker='D', linestyle='dotted',
                          markerfacecolor='#EFAD9A', label='ECO-200', c='#DF5C35')
         axis[index].plot(k, exact_recov_rate_ECO_1600, marker='D', linestyle='solid',
