@@ -9,7 +9,16 @@ import utilities as ut
 
 
 def clef(x_norm, radius, kappa_min):
-    """Return maximal faces s.t. kappa > kappa_min."""
+    """Return maximal faces such that kappa > kappa_min.
+
+    Parameters:
+    x_norm (np.ndarray): Normalized input data.
+    radius (float): The radius used to define binary values.
+    kappa_min (float): The minimum kappa value for filtering faces.
+
+    Returns:
+    list: A list of maximal faces that satisfy the kappa condition.
+    """
     x_bin = ut.above_radius_bin(x_norm, radius)
     faces_dict = find_faces(x_bin, kappa_min)
     faces = find_maximal_faces(faces_dict)
@@ -18,7 +27,15 @@ def clef(x_norm, radius, kappa_min):
 
 
 def clef_0(x_bin, kappa_min):
-    """Return maximal faces s.t. kappa > kappa_min."""
+    """Return maximal faces such that kappa > kappa_min.
+
+    Parameters:
+    x_bin (np.ndarray): Binary input data.
+    kappa_min (float): The minimum kappa value for filtering faces.
+
+    Returns:
+    list: A list of maximal faces that satisfy the kappa condition.
+    """
     faces_dict = find_faces(x_bin, kappa_min)
     faces = find_maximal_faces(faces_dict)
 
@@ -31,7 +48,15 @@ def clef_0(x_bin, kappa_min):
 
 
 def faces_init(x_bin, mu_0):
-    """Returns faces of size 2 s.t. kappa > kappa_min."""
+    """Returns faces of size 2 such that kappa > mu_0.
+
+    Parameters:
+    x_bin (np.ndarray): Binary input data.
+    mu_0 (float): The threshold for filtering faces based on probability.
+
+    Returns:
+    list: A list of pairs of indices representing valid faces.
+    """
     asymptotic_pair = []
     for (i, j) in it.combinations(range(x_bin.shape[1]), 2):
         pair_tmp = x_bin[:, [i, j]]
@@ -46,10 +71,16 @@ def faces_init(x_bin, mu_0):
 
 
 def kappa(x_bin, face):
-    """Returns kappa value.
+    """Returns the kappa value for a given face.
 
-    kappa = #{i | for all j in face, X_ij=1} /  #{i | at least |face|-1 j, X_ij=1}
+    kappa = #{i | for all j in face, X_ij=1} / #{i | at least |face|-1 j, X_ij=1}
 
+    Parameters:
+    x_bin (np.ndarray): Binary input data.
+    face (list): A list of indices representing the face.
+
+    Returns:
+    float: The kappa value for the given face.
     """
     beta = compute_beta(x_bin, face)
     all_face = np.sum(np.prod(x_bin[:, face], axis=1))
@@ -62,10 +93,28 @@ def kappa(x_bin, face):
 
 
 def compute_beta(x_bin, face):
+    """Computes the beta value for a given face.
+
+    Parameters:
+    x_bin (np.ndarray): Binary input data.
+    face (list): A list of indices representing the face.
+
+    Returns:
+    float: The computed beta value.
+    """
     return np.sum(np.sum(x_bin[:, face], axis=1) > len(face)-2)
 
 
 def khi(binary_data, face):
+    """Computes the khi value for a given face.
+
+    Parameters:
+    binary_data (np.ndarray): Binary input data.
+    face (list): A list of indices representing the face.
+
+    Returns:
+    float: The khi value for the given face.
+    """
     face_vect_tmp = binary_data[:, face]
     face_exist = float(np.sum(np.sum(face_vect_tmp, axis=1) > 0))
     all_face = np.sum(np.prod(face_vect_tmp, axis=1))
@@ -74,7 +123,15 @@ def khi(binary_data, face):
 
 
 def find_faces(x_bin, kappa_min):
-    """Returns all faces s.t. kappa > kappa_min."""
+    """Returns all faces such that kappa > kappa_min.
+
+    Parameters:
+    x_bin (np.ndarray): Binary input data.
+    kappa_min (float): The minimum kappa value for filtering faces.
+
+    Returns:
+    dict: A dictionary containing lists of faces grouped by their sizes.
+    """
     dim = x_bin.shape[1]
     size = 2
     faces_dict = {}
@@ -94,7 +151,15 @@ def find_faces(x_bin, kappa_min):
 
 
 def find_maximal_faces(faces_dict, lst=True):
-    """Return inclusion-wise maximal faces."""
+    """Return inclusion-wise maximal faces.
+
+    Parameters:
+    faces_dict (dict): A dictionary of faces grouped by their sizes.
+    lst (bool): If True, returns a flat list of maximal faces.
+
+    Returns:
+    list: A list of maximal faces.
+    """
     k = len(faces_dict.keys()) + 1
     maximal_faces = [faces_dict[k]]
     faces_used = list(map(set, faces_dict[k]))
@@ -121,7 +186,16 @@ def find_maximal_faces(faces_dict, lst=True):
 
 
 def init_freq(x_bin_k, k, f_min):
-    """Return all faces of size 2 s.t. frequency > f_min."""
+    """Return all faces of size 2 such that frequency > f_min.
+
+    Parameters:
+    x_bin_k (np.ndarray): Binary input data.
+    k (int): The parameter related to the frequency calculation.
+    f_min (float): The minimum frequency threshold for filtering faces.
+
+    Returns:
+    list: A list of pairs of indices representing faces with frequency above f_min.
+    """
     dim = x_bin_k.shape[1]
     faces = []
     for (i, j) in it.combinations(range(dim), 2):
@@ -134,7 +208,16 @@ def init_freq(x_bin_k, k, f_min):
 
 
 def find_faces_freq(x_bin_k, k, f_min):
-    """Return all faces s.t. frequency > f_min."""
+    """Return all faces such that frequency > f_min.
+
+    Parameters:
+    x_bin_k (np.ndarray): Binary input data.
+    k (int): The parameter related to the frequency calculation.
+    f_min (float): The minimum frequency threshold for filtering faces.
+
+    Returns:
+    dict: A dictionary containing lists of faces grouped by their sizes.
+    """
     dim = x_bin_k.shape[1]
     faces_pairs = init_freq(x_bin_k, k, f_min)
     size = 2
@@ -154,7 +237,16 @@ def find_faces_freq(x_bin_k, k, f_min):
 
 
 def freq_0(x_bin_k, k, f_min):
-    """Return maximal faces s.t. frequency > f_min."""
+    """Return maximal faces such that frequency > f_min.
+
+    Parameters:
+    x_bin_k (np.ndarray): Binary input data.
+    k (int): The parameter related to the frequency calculation.
+    f_min (float): The minimum frequency threshold for filtering faces.
+
+    Returns:
+    list: A list of maximal faces that satisfy the frequency condition.
+    """
     faces_dict = find_faces_freq(x_bin_k, k, f_min)
 
     return find_maximal_faces(faces_dict)
