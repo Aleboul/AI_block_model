@@ -6,8 +6,17 @@
 library(rlang)
 
 vect_of_thresholds <- function(v){
-  # This function gives a vector listing the ordered thresholds for which
-  # a vector v has a different number of nonnull coordinates
+  # This function generates a vector of ordered thresholds 
+  # for which a numeric vector v has a different number of non-null coordinates.
+  #
+  # Parameters:
+  #   v: A numeric vector. It can contain both positive and negative values,
+  #      and may include NULL values (or NA). The function will return a 
+  #      vector of thresholds based on the sorted values of v.
+  #
+  # Returns:
+  #   A numeric vector of thresholds.
+
   d <- length(v)
   u <- sort(v, TRUE)
   threshold <- rep(0,d)
@@ -21,8 +30,22 @@ vect_of_thresholds <- function(v){
 }
 
 cones_function <- function(v, Gamma){
-  # This function gives the subsets which contains the mass of Z
-  # with Gamma by decreasing order
+  # This function identifies the subsets that contain the mass of Z
+  # with respect to Gamma, sorted in decreasing order.
+  #
+  # Args:
+  #   v: A numeric vector. Represents the values for which the
+  #      thresholding and projection are being calculated.
+  #   Gamma: A numeric vector. Contains the threshold values 
+  #          for projecting the coordinates of v. It should be sorted
+  #          in increasing order for the function to work correctly.
+  #
+  # Returns:
+  #   A matrix where each column corresponds to an entry in Gamma,
+  #   and each row corresponds to the projected coordinates of v.
+  #   Entries will be 0 or 1 depending on whether v is projected or not,
+  #   with NA for values of Gamma that are too large.
+
   d <- length(v)
   ord <- order(v)
   thres <- vect_of_thresholds(v)
@@ -60,7 +83,18 @@ cones_function <- function(v, Gamma){
 }
 
 occ_subsets <- function(testmtx){
-  # This function takes a matrix and gives the number of occurence of each column
+  # This function takes a matrix and counts the occurrences of each unique column.
+  #
+  # Parameters:
+  #   testmtx: A numeric matrix where each column is treated as a separate entity.
+  #             The function identifies columns that are identical (duplicate columns)
+  #             and counts how many times each unique column occurs.
+  #
+  # Returns:
+  #   A matrix where the first part contains the unique columns of the input matrix,
+  #   and the second part contains a frequency table indicating the number of occurrences
+  #   of each unique column.
+
   nc <- ncol(testmtx)
   occ <- seq(nc)  
   for (i in seq(nc-1)) {
@@ -73,8 +107,22 @@ occ_subsets <- function(testmtx){
 }
 
 muscle_plot <- function(X, prop){
-  # This function gives for each k the value of s_hat which minimizes the KL
-  # and the value of this minimizer
+  # This function calculates the optimal values of s_hat that minimize the Kullback-Leibler (KL) divergence
+  # for each k, along with the corresponding minimizer values.
+  #
+  # Parameters:
+  #   X: A numeric matrix of dimensions (d x n), where d is the number of rows (features)
+  #      and n is the number of columns (observations). This matrix contains the data for analysis.
+  #   prop: A numeric vector containing proportions (between 0 and 1) that indicate which thresholds to consider.
+  #         It should be provided in increasing order.
+  #
+  # Returns:
+  #   A matrix containing:
+  #     - k: The number of unique columns in each subset.
+  #     - s_tilde: The number of unique occurrences of columns.
+  #     - hat_s: The index of s_hat that minimizes the KL divergence.
+  #     - minimizer: The minimum value of the KL divergence for the optimal s_hat.
+
   n <- ncol(X)
   d <- nrow(X)
   p <- length(prop) # prop should be given in an increasing order
@@ -118,8 +166,23 @@ muscle_plot <- function(X, prop){
 
 ##########################################################
 muscle_clusters <- function(X, prop){
-  # This function uses the previous algo, chooses the optimal k,
-  # and gives the associated subsets on which the angular vector Z puts mass
+  # This function uses the previous algorithm to choose the optimal k and
+  # provides the associated subsets on which the angular vector Z assigns mass.
+  #
+  # Parameters:
+  #   X: A numeric matrix of dimensions (d x n), where d is the number of rows (features)
+  #      and n is the number of columns (observations). This matrix contains the data for analysis.
+  #   prop: A numeric vector containing proportions (between 0 and 1) that indicate which thresholds to consider.
+  #         It should be provided in increasing order.
+  #
+  # Returns:
+  #   A list containing:
+  #     - M: A matrix of subsets representing the angular vectors with assigned mass.
+  #     - k_hat: The optimal number of clusters (k).
+  #     - u: The threshold corresponding to the optimal k.
+  #     - s_hat: The index of the optimal s_hat that minimizes the KL divergence.
+  #     - weights: The normalized weights of the mass distribution across subsets.
+
   n <- ncol(X)
   d <- nrow(X)
   p <- length(prop) # prop should be given in an increasing order
@@ -150,7 +213,6 @@ muscle_clusters <- function(X, prop){
     M <- as.matrix(M[ , ordered_subcones])
     T <- M[(d+1), ]
     
-    # we now optimize in s_hat
     # we now optimize in s_hat
     optim <- 1:(r-1) - lfactorial(k) + k*log(k) + sum(lfactorial(T)) - cumsum(T[-r]*(log(T)[-r])) - (k-cumsum(T[-r]))*log( (k-cumsum(T[-r])) / ((r-1):1) )
     min_loc <- optim[which.min(optim)]/k + k/n
