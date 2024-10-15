@@ -13,7 +13,15 @@ All signals were sampled at 256 samples per second with 16-bit resolution. Most 
 
 ## File Description
 
-* `script_seizures.py`, generate a csv file containing the block maxima (here, block of 4 minutes) of the time series without seizures. This file contains 140293 seconds of records.
-* `script_seizures.py`, generate a csv file containing the block maxima (here, block of 5 seconds) of the time series with seizures. This file contains 558 seconds of records.
+* `script_wo_seizures.py`, generate a csv file containing the block maxima (here, block of 4 minutes) of the time series without seizures. To run this code, all chb_05 file should be downloaded (https://physionet.org/content/chbmit/1.0.0/) and located in the data folder.
+* `script_seizures.py`, generate a csv file containing the block maxima (here, block of 5 seconds) of the time series with seizures. To run this code, all chb_05 file should be downloaded (https://physionet.org/content/chbmit/1.0.0/) and located in the data folder.
 * `analysis_seizures.py`, performs clustering according to an AI block model of the CHB-MIT Scalp EEG database for patient 05. The analysis is performed where seizures are observed.
 * `analysis_wo_seizures.py`, Performs clustering according to an AI block model of the CHB-MIT Scalp EEG database for patient 05. The analysis is performed where no seizures are observed.
+
+## Dependencies
+
+To run this script, you need to install the following packages:
+
+- **numpy** (version >= 1.24.2): For numerical calculations and array manipulation.
+- **matplotlib** (version => 3.7.1): For plotting and visualizing results.
+- **mne** (version => 2.0.1): For advanced neurophysiological data processing and analysis.

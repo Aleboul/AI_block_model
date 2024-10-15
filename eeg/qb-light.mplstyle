@@ -1,9 +1,29 @@
+# ==============================================================================
+# Plotting Style Configuration
+# ------------------------------------------------------------------------------
+# This configuration file sets custom styles for the visual appearance of plots.
+# It modifies font colors, axes properties, tick marks, grid lines, legend styles, 
+# and figure background settings for improved aesthetics and clarity.
+# 
+# Configuration Parameters:
+#   - FONT: Adjusts the font colors used in the plots.
+#   - AXES: Defines the appearance of the axes, including labels and edges.
+#   - TICKS: Customizes the colors of tick marks on the x and y axes.
+#   - GRIDS: Enables grid lines and sets their appearance.
+#   - LEGEND: Styles the legend background and label colors.
+#   - FIGURE: Sets the overall figure background color.
+#   - CUSTOM: Includes specific font choices and color cycles for plots.
+#
+# Author: [Your Name]
+# Date: [Current Date]
+# ==============================================================================
+
 ### FONT
 text.color : 8A8A8C
 
 ### AXES
 axes.facecolor      : FFFFFF   # change la couleur des faces
-axes.edgecolor      : white   # change la couleur des axes
+axes.edgecolor      : white     # change la couleur des axes
 axes.labelcolor     : 0F0F0F   # change la couleur des labels
 
 ### TICKS
@@ -17,7 +37,7 @@ grid.linestyle   :   -        #
 
 ### Legend
 legend.facecolor : None   # legend background color (when 'inherit' uses axes.facecolor)
-legend.edgecolor : None # legend edge color (when 'inherit' uses axes.edgecolor)
+legend.edgecolor : None   # legend edge color (when 'inherit' uses axes.edgecolor)
 legend.labelcolor: 0F0F0F
 
 ### FIGURE
