@@ -10,3 +10,15 @@ For the calibration of the LISFLOOD within the EFAS framework, a total of $1137$
 
 * `max.py`, returns occurences of annual maxima for each month.
 * `clust.py`, performs clustering according to an AI block model of the EFAS dataset over the european domain.
+* `eco_alg.py`, The provided file contains a module that offers functions for statistical analysis and clustering, specifically focusing on extremal value theory and clustering based on extremal correlation matrices, including methods for computing the empirical cumulative distribution function, extremal coefficient, and clustering algorithms for identifying significant dependencies among variables.
+
+## Dependencies
+
+To run this script, you need to install the following packages:
+
+- **pandas** (version >= 1.5.3): For data manipulation and analysis.
+- **numpy** (version >= 1.24.2): For numerical calculations and array manipulation.
+- **matplotlib** (version => 3.7.1): For plotting and visualizing results.
+- **seaborn** (version => 0.12.2): To enhance the aesthetics of data visualizations.
+- **geopandas** (version => 0.12.2): For handling and visualizing geographic data.
+- **shapely** (version => 2.0.1): For geometric operations and representations.
