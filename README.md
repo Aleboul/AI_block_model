@@ -4,7 +4,7 @@ This repository contains code and data for replicating experiments and analyses 
 
 **1. competitors**
 
-This directory contains Python code for conducting numerical experiments outlined in Section 4 of the main paper. The code covers algorithms and methodologies discussed for comparative analysis.
+This directory contains Python and R code for conducting numerical experiments outlined in Section 4 of the main paper. The code covers algorithms and methodologies discussed for comparative analysis.
 
 **2. eeg**
 
