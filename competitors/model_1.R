@@ -1,27 +1,37 @@
-source('muscle.R')
-library(MASS)
-library(skmeans)
+# Load required R scripts and libraries
+source('muscle.R')  # Source the custom R script 'muscle.R' which contains relevant functions
+library(MASS)       # Load the MASS library for statistical functions
 
-X = read.csv(paste('results_model_1/data/data/data_',1,'.csv', sep=''))
+# Read the CSV file containing data for the model
+X = read.csv(paste('results_model_1/data/data/data_', 1, '.csv', sep=''))
 
+# Remove the first column from the dataset, typically an index or identifier
 X = X[,-1]
-d = ncol(X)
-n = nrow(X)
+
+# Determine the number of features (dimensions) and observations (data points)
+d = ncol(X)  # Number of columns (features) in the dataset
+n = nrow(X)  # Number of rows (observations) in the dataset
+
+# Set the number of clusters (k) as the square root of the number of observations, rounded to the nearest integer
 k = as.integer(sqrt(n))
-nclusters = as.integer(d / 4)
-if(nclusters < k){
-    norms = rowNorms(as.matrix(X), method = "euclidean", p = 2)
-    indices = rank(norms) > n-k
-    norms_ext = as.matrix(X[indices,])
-    km <- skmeans(norms_ext, nclusters)
-    centers = data.frame(km$prototypes)
-    write.csv(centers,file=paste("results_model_1/results_skmeans/skmeans/centers_",1,".csv", sep=''), row.names=F)
-}
-if(n > 1000){
+
+# Check if the number of observations is greater than 1000 before proceeding with clustering
+if(n > 1000) {
+    # Transpose the data matrix so that features are rows and observations are columns
     X = t(X)
+    
+    # Create a sequence of proportions to be used in the clustering process
     prop <- seq(0.01, 0.15, by = 0.005)
+    
+    # Call the muscle_clusters function to perform clustering and get cluster directions
     directions <- muscle_clusters(X, prop)
-    M_emp <- as.matrix(directions[[1]][-(d+1), ])
+    
+    # Extract the membership matrix (excluding the last row) from the clustering results
+    M_emp <- as.matrix(directions[[1]][-(d + 1), ])
+    
+    # Convert the membership matrix to a data frame for easier manipulation
     M_emp = data.frame(M_emp)
-    write.csv(M_emp,file=paste("results_model_1/results_muscle/muscle/Memp_",1,".csv", sep=''), row.names=F)
+    
+    # Write the membership matrix to a CSV file for later analysis, without row names
+    write.csv(M_emp, file=paste("results_model_1/results_muscle/muscle/Memp_", 1, ".csv", sep=''), row.names=F)
 }

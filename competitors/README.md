@@ -19,3 +19,19 @@ potential of being large simultaneously. Extremes, 22:193–222.
 * `eco_alg.py`: contains functions to run ECO algorithm.
 * `ut_eco.py` and `utilities.py`: contain additional function to run eco algorithm clef and damex algorithms, respectively.
 * `muscle.R`: functions related to the article "MUltivariate Sparse CLustering for Extremes" by Nicolas Meyer and Olivier Wintenberger.
+
+## Dependencies:
+The following packages are required to run the code:
+
+- Python packages:
+  - **numpy** (version >= 1.24.2)
+  - **Clayton** (version >= 0.0.3)
+  - **pandas** (version >= 1.5.3)
+  - **matplotlib** (version >= 3.7.1)
+  - **sklearn** (version >= 1.2.2)
+  - **rpy** (version > 3.5.13)
+
+- R packages:
+  - **rlang** (version >= 1.1.1)
+  - **MASS** (version > 7.3.55)
+  - **skmeans** (version >= 0.2.16)

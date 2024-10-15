@@ -1,10 +1,42 @@
 """
-    Produce numerical results for Experiment E2 and Framework F1
+# Numerical Experimentation in Experiment E2 and Framework F1
+
+## Purpose
+This script conducts numerical experiments within Experiment E2 and Framework F1. It generates artificial data and evaluates various clustering algorithms using the Adjusted Rand Index (ARI) as a performance metric.
+
+## Description
+The code initializes parameters for a comparative analysis of clustering algorithms applied to data generated via the Clayton copula. It employs several algorithms including:
+- DAMEX (Detecting Anomaly among Multivariate Extremes)
+- CLEF (CLustering Extreme Features)
+- MUSCLE (MUltivariate Sparse CLustering for Extremes)
+- ECO (Extremal COrrelation)
+- SKmeans (Spherical Kmeans)
+
+The experiments vary based on the sparsity index and dimensionality factors. The code generates datasets, performs clustering, and evaluates performance metrics. 
+
+## Parameters
+- `k` : Number of block maxima
+- `p` : Order of the moving maxima process
+- `m` : Length of each block
+- `dim_fact` : List of dimensionality factors for generating artificial data
+- `sparsity_index` : Index determining the sparsity of the generated data
+- `niter` : Number of iterations for each clustering algorithm
+
+## Functions
+- `runif_in_simplex(n)`: Returns a uniformly random vector in the n-simplex.
+
+## Dependencies
+- clayton
+- numpy
+- pandas
+- matplotlib
+- sklearn
+- rpy2
 """
+
 
 from clayton.rng.archimedean import Clayton
 import numpy as np
-from scipy.stats import pareto
 import pandas as pd
 import matplotlib.pyplot as plt
 import eco_alg
@@ -13,7 +45,6 @@ from sklearn.metrics import adjusted_rand_score
 
 import damex as dmx
 import clef as clf
-import hill as hill
 import utilities as ut
 import ut_eco as ut_eco
 
@@ -24,9 +55,27 @@ np.random.seed(42)
 
 
 def runif_in_simplex(n):
-    ''' Return uniformly random vector in the n-simplex '''
+    '''
+    Generate a uniformly random vector in the n-simplex.
 
+    The n-simplex is the set of points in n-dimensional space that sum to 1 
+    and have non-negative coordinates. This function samples from a 
+    probability distribution that produces a point uniformly within the n-simplex.
+
+    Parameters:
+    n (int): The dimension of the simplex. It specifies the number of elements
+             in the output vector.
+
+    Returns:
+    numpy.ndarray: A 1D array of shape (n,) containing a uniformly random 
+                   vector in the n-simplex, where each element is non-negative 
+                   and the sum of all elements equals 1.
+    '''
+
+    # Generate n samples from an exponential distribution
     k = np.random.exponential(scale=1.0, size=n)
+
+    # Normalize the samples by dividing by their sum to ensure they sum to 1
     return k / sum(k)
 
 
@@ -398,17 +447,24 @@ for k in _k_:
                 ari_clf.append(adjusted_rand_score(
                     pred_labels_clf, true_labels))
 
+        # Convert ARI results to DataFrames and save to CSV files
+
+        # Convert ARI results to DataFrames
+
         ari_dmx = pd.DataFrame(ari_dmx)
         ari_clf = pd.DataFrame(ari_clf)
         ari_muscle = pd.DataFrame(ari_muscle)
         ari_skmeans = pd.DataFrame(ari_skmeans)
         ari_eco_seco = pd.DataFrame(ari_eco_seco)
 
+        # Print ARI results
         print(ari_dmx)
         print(ari_muscle)
         print(ari_clf)
         print(ari_skmeans)
         print(ari_eco_seco)
+
+        # Save ARI results to CSV files
 
         pd.DataFrame.to_csv(ari_dmx, "results_model_2/results/model_2_" +
                             str(int(d)) + "_" + str(int(k)) + "/ari_dmx" + ".csv")
@@ -420,11 +476,3 @@ for k in _k_:
                             str(int(d)) + "_" + str(int(k)) + "/ari_skmeans" + ".csv")
         pd.DataFrame.to_csv(ari_eco_seco, "results_model_2/results/model_2_" +
                             str(int(d)) + "_" + str(int(k)) + "/ari_eco_seco" + ".csv")
-
-
-"""
-k = 50, y'a une interruption d'algorithme sur muscle
-d > 80, clef + HILL prend beaucoup de temps, calcul au labo!
-Pour le CLEF, faire les calculs pour d > 320 au laboratoire!
-pour k > 400, faire au labo!
-"""
