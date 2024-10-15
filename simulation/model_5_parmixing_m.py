@@ -1,259 +1,208 @@
+"""
+Monte Carlo Simulation for Clustering Accuracy Evaluation Using the ECO Algorithm
+
+This script implements a Monte Carlo simulation to assess the clustering accuracy 
+of the ECO algorithm by generating synthetic samples based on copula-based methods 
+using R functions. It utilizes multiprocessing for efficient computation across 
+multiple iterations and block sizes.
+
+Key Functions:
+---------------
+1. `make_sample(n_sample, d, k, m, p, seed)`: 
+   - Generates synthetic samples using R functions for copula-based sampling.
+   - Inputs:
+     - n_sample (int): Number of samples to generate.
+     - d (int): Number of dimensions (variables) in the data.
+     - k (int): Related to the number of block maxima.
+     - m (int): Length of block maxima.
+     - p (float): Probability parameter for random generation.
+     - seed (int): Random seed for reproducibility.
+   - Returns: A NumPy array containing generated sample data.
+
+2. `operation_model_3_ECO(dict, seed)`:
+   - Executes a Monte Carlo simulation to evaluate clustering accuracy.
+   - Inputs:
+     - dict (dict): Contains parameters for clustering, including:
+       - d1 (int): Dimension of the first sample group.
+       - d2 (int): Dimension of the second sample group.
+       - n_sample (int): Total number of samples.
+       - k (int): Parameter for block maxima.
+       - m (int): Block length parameter.
+       - p (float): Probability parameter.
+     - seed (int): Seed for random number generation.
+   - Returns: Percentage of exact recovery of clusters.
+
+Dependencies:
+--------------
+- rpy2: To interface with R and execute R scripts.
+- numpy: For numerical operations and handling arrays.
+- pandas: For data manipulation and analysis.
+- matplotlib: For plotting (not utilized in this script, but imported).
+- multiprocessing: For parallel processing.
+- eco_alg: Custom module containing functions for extremal correlation and clustering.
+
+Usage:
+------
+1. Ensure the R script 'model_3_parmixing_m.R' is in the same directory and 
+   contains the necessary R functions for sampling and copula generation.
+2. Run the script to perform simulations across various sample sizes and 
+   save results to a CSV file.
+
+Output:
+-------
+- The results of the simulations are stored in a pandas DataFrame and 
+  saved to 'results_model_5_ECO_200_mixing_p0.9_m.csv'.
+"""
+
 import rpy2.robjects as robjects
 r = robjects.r
-r['source']('model_3_parmixing_m.R')
+r['source']('model_5_parmixing_m.R')
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import scipy as sp
 import multiprocessing as mp
-from sklearn.cluster import AgglomerativeClustering
-
-def ecdf(X):
-    """ Compute uniform ECDF.
-    
-    Inputs
-    ------
-        X (np.array[float]) : array of observations
-    Output
-    ------
-        Empirical uniform margin
-    """
-
-    index = np.argsort(X)
-    ecdf = np.zeros(len(index))
-
-    for i in index :
-        ecdf[i] = (1.0 / X.shape[0]) * np.sum(X <= X[i])
-
-    return ecdf
-
-def theta(R, mode = "extremal_coefficient") :
-    """
-        This function computes the w-madogram
-        Inputs
-        ------
-        R (array([float]) of n_sample \times d) : rank's matrix
-                                              w : element of the simplex
-                            miss (array([int])) : list of observed data
-                           corr (True or False) : If true, return corrected version of w-madogram
-        
-        Outputs
-        -------
-        w-madogram
-    """
-
-    Nnb = R.shape[1]
-    Tnb = R.shape[0]
-    V = np.zeros([Tnb, Nnb])
-    for j in range(0, Nnb):
-        V[:,j] = R[:,j]
-    value_1 = np.amax(V,1)
-    value_2 = (1/Nnb) * np.sum(V, 1)
-    mado = (1/Tnb) * np.sum(value_1 - value_2)
-
-    if mode == "extremal_coefficient":
-        value = (mado + 1/2) / (1/2-mado)
-    if mode == "madogram":
-        value = mado
-    return value
-
-def find_max(M, S):
-    mask = np.zeros(M.shape, dtype = bool)
-    values = np.ones((len(S),len(S)),dtype = bool)
-    mask[np.ix_(S,S)] = values
-    np.fill_diagonal(mask,0)
-    max_value = M[mask].max()
-    i , j = np.where(np.multiply(M, mask * 1) == max_value) # Sometimes doublon happens for excluded clusters, if n is low
-    return i[0], j[0]
-
-def clust(Theta, n, alpha = None):
-    """ Performs clustering in AI-block model
-    
-    Inputs
-    ------
-        Theta : extremal correlation matrix
-        alpha : threshold, of order sqrt(ln(d)/n)
-    
-    Outputs
-    -------
-        Partition of the set \{1,\dots, d\}
-    """
-    d = Theta.shape[1]
-
-    # Initialisation
-
-    S = np.arange(d)
-    l = 0
-
-    if alpha is None:
-        alpha = 2 * np.sqrt(np.log(d)/n)
-    
-    cluster = {}
-    while len(S) > 0:
-        l = l + 1
-        if len(S) == 1:
-            cluster[l] = np.array(S)
-        else :
-            a_l, b_l = find_max(Theta, S)
-            if Theta[a_l,b_l] < alpha :
-                cluster[l] = np.array([a_l])
-            else :
-                index_a = np.where(Theta[a_l,:] >= alpha)
-                index_b = np.where(Theta[b_l,:] >= alpha)
-                cluster[l] = np.intersect1d(S,index_a,index_b)
-        S = np.setdiff1d(S, cluster[l])
-    
-    return cluster
+import eco_alg
 
 def init_pool_processes():
-    sp.random.seed()
+    np.random.seed()
 
 def make_sample(n_sample, d, k, m, p, seed, K):
+    """
+    Generates a synthetic sample using R functions for copula-based sampling and 
+    randomness generation, and computes ground-truth clusters based on the generated data.
+
+    Inputs
+    ------
+    n_sample (int) : The number of samples (observations) to generate.
+    d (int)        : The total number of dimensions or variables in the dataset.
+    k (int)        : A parameter related to the number of block maxima (affecting block maxima).
+    m (int)        : Block length parameter.
+    p (float)      : Probability parameter influencing the random process.
+    seed (int)     : Random seed for reproducibility.
+    K (int)        : The number of cluster to generate.
+
+    Outputs
+    -------
+    np.array       : A NumPy array containing the generated sample data.
+    O_bar (dict)   : A dictionary representing the ground-truth partitioning of the dimensions.
+                     - Keys are cluster labels (starting from 1).
+                     - Values are ranges (arrays of indices) indicating which dimensions belong to each cluster.
+    """
+
+    # Retrieve necessary R functions from the global environment for copula-based sampling
+    # Function to generate a copula model
     generate_copula = robjects.globalenv['generate_copula']
+    # Function to generate random samples
     generate_randomness = robjects.globalenv['generate_randomness']
+    # Function to process generated samples
     robservation = robjects.globalenv['robservation']
-    copoc = generate_copula(d = d, K = K, seed = seed)
-    sizes = copoc[1]
-    copoc = copoc[0]
-    sample = generate_randomness(n_sample, p = p, d = d, seed = seed, copoc = copoc)
-    data = robservation(sample, m = m, d = d, k = k)
 
-    O_bar = {}
-    l = 0
-    _d = 0
+    # Step 1: Generate the copula model with specified dimensions 'd' and 'K' clusters
+    copoc = generate_copula(d=d, K=K, seed=seed)
+
+    # Extract the sizes of each cluster from the generated copula
+    sizes = copoc[1]  # Cluster sizes returned by the copula model
+    copoc = copoc[0]  # Actual copula model object used for generating samples
+
+    # Step 2: Generate random samples using the copula model
+    sample = generate_randomness(n_sample, p=p, d=d, seed=seed, copoc=copoc)
+
+    # Step 3: Process the generated sample using the observation function to obtain structured data
+    data = robservation(sample, m=m, d=d, k=k)
+
+    # Step 4: Construct the ground-truth partitioning (O_bar) based on the sizes of the clusters
+    O_bar = {}  # Initialize a dictionary to hold the clusters
+    l = 0  # Cluster index
+    _d = 0  # Dimension index tracking
+
+    # Iterate over the sizes of the clusters to assign dimensions to each cluster
     for d_ in sizes:
-        l += 1
-        O_bar[l] = np.arange(_d, _d + d_)
-        _d += d_
+        l += 1  # Increment the cluster index
+        O_bar[l] = np.arange(_d, _d + d_)  # Assign dimensions to cluster 'l'
+        _d += d_  # Update the dimension index for the next cluster
 
+    # Step 5: Return the processed sample data and the ground-truth partitioning
+    # Convert data to NumPy array before returning
     return np.array(data), O_bar
 
-def perc_exact_recovery(O_hat, O_bar):
-    value = 0
-    for key1, true_clust in O_bar.items():
-        for key2, est_clust in O_hat.items():
-            if len(true_clust) == len(est_clust):
-                test = np.intersect1d(true_clust,est_clust)
-                if len(test) > 0 and len(test) == len(true_clust) and np.sum(np.sort(test) - np.sort(true_clust)) == 0 :
-                    value +=1
-    return value / len(O_bar)
 
-def operation_model_1_ECO(dict, seed):
-    """ Operation to perform Monte carlo simulation
-    Input
-    -----
-        dict : dictionnary containing
-                - d1 : dimension of the first sample
-                - d2 : dimension of the second sample
-                - n_sample : sample's length
+def operation_model_5_ECO(dict, seed):
+    """
+    Performs a Monte Carlo simulation to evaluate the accuracy of clustering using the ECO algorithm (Extremal Clustering).
+
+    Input Parameters
+    ----------------
+    dict : dict
+        A dictionary containing the following keys:
+        - 'd1' (int)       : Dimension (number of variables) of the first group of the sample.
+        - 'd2' (int)       : Dimension (number of variables) of the second group of the sample.
+        - 'n_sample' (int) : Total number of samples (observations) to generate.
+        - 'd' (int)        : Total number of dimensions (variables) in the data.
+        - 'k' (int)        : Parameter related to the number of block maxima (size of clusters).
+        - 'm' (int)        : Parameter related to block length (used in generating synthetic data).
+        - 'p' (float)      : Probability parameter influencing the random process.
+        - 'K' (int)        : Number of true clusters in the data (used to simulate ground truth).
+
+    seed : int
+        Seed for random number generation, ensuring reproducibility.
+
+    Returns
+    -------
+    perc : float
+        The percentage of exact recovery, which measures how well the clustering algorithm recovers the true partition
+        (ground-truth clusters) of the data.
     """
 
-    sp.random.seed(1*seed)
-    # Generate first sample
-    sample, O_bar = make_sample(n_sample = dict['n_sample'], d = dict['d'], k = dict['k'], m = dict['m'], p = dict['p'], seed = seed, K = dict['K'])
-    # initialization
+    # Set the random seed for reproducibility, scaled by the provided seed
+    np.random.seed(1 * seed)
+
+    # Step 1: Generate a synthetic sample using the provided parameters and R-based functions
+    # The function `make_sample` returns the generated sample and the ground truth clusters (O_bar)
+    sample, O_bar = make_sample(n_sample=dict['n_sample'], d=dict['d'], k=dict['k'],
+                                m=dict['m'], p=dict['p'], seed=seed, K=dict['K'])
+
+    # Step 2: Initialize the number of dimensions based on the sample shape
+    # 'd' is the total number of dimensions in the generated sample
     d = sample.shape[1]
 
+    # Step 3: Initialize an empty matrix R to hold empirical cumulative distribution function (ECDF) values
+    # R will have 'k' rows (number of clusters) and 'd' columns (dimensions)
     R = np.zeros([dict['k'], d])
-    for j in range(0,d):
-        X_vec = sample[:,j]
-        R[:,j] = ecdf(X_vec)
-    
-    Theta = np.ones([d,d])
-    for j in range(0,d):
-        for i in range(0,j):
-            Theta[i,j] = Theta[j,i] = 2 - theta(R[:,[i,j]], mode = "extremal_coefficient")
 
+    # Step 4: Calculate the ECDF for each dimension in the sample
+    for j in range(0, d):  # Iterate over each dimension
+        # Extract the j-th variable (column) from the sample
+        X_vec = sample[:, j]
+        # Compute the ECDF for the j-th variable and store it in R
+        R[:, j] = eco_alg.ecdf(X_vec)
 
-    O_hat = clust(Theta, n = dict['k'])
+    # Step 5: Initialize the extremal correlation matrix Theta
+    # Create a matrix to store extremal correlations (initialized to 1)
+    Theta = np.ones([d, d])
 
-    perc = perc_exact_recovery(O_hat, O_bar)
+    # Step 6: Calculate the extremal correlation between each pair of dimensions
+    for j in range(0, d):  # Iterate over each dimension
+        for i in range(0, j):  # Only iterate over the lower triangle to avoid redundant calculations
+            # Compute the extremal correlation between dimensions i and j using the theta function
+            Theta[i, j] = Theta[j, i] = 2 - eco_alg.theta(R[:, [i, j]])
 
-    return perc
+    # Step 7: Perform clustering based on the extremal correlation matrix Theta
+    # The `clust` function clusters the dimensions based on their extremal correlations, using 'k' as the number of clusters
+    O_hat = eco_alg.clust(Theta, n=dict['k'], m=dict['m'])
 
-def operation_model_1_HC(dict, seed):
-    """ Operation to perform Monte carlo simulation
+    # Step 8: Calculate the percentage of exact recovery (how accurately the clustering matches the true partition)
+    perc = eco_alg.perc_exact_recovery(O_hat, O_bar)
 
-    Input
-    -----
-        dict : dictionnary containing
-                - d1 : dimension of the first sample
-                - d2 : dimension of the second sample
-                - n_sample : sample's length
-    """
-
-    sp.random.seed(1*seed)
-    sample, O_bar = make_sample(n_sample = dict['n_sample'], d = dict['d'], k = dict['k'], m = dict['m'], p = dict['p'], seed = seed, K = dict['K'])
-    # initialization
-    d = sample.shape[1]
-
-    R = np.zeros([dict['k'], d])
-    for j in range(0,d):
-        X_vec = sample[:,j]
-        R[:,j] = ecdf(X_vec)
-    
-    Theta = np.ones([d,d])
-    for j in range(0,d):
-        for i in range(0,j):
-            Theta[i,j] = Theta[j,i] =theta(R[:,[i,j]], mode = "madogram")
-
-    HC = AgglomerativeClustering(n_clusters=dict['K'], affinity = 'precomputed', linkage = 'average').fit(Theta)
-    labels = HC.labels_
-    label = np.unique(labels)
-    O_hat = {}
-
-    for lab, l in enumerate(label):
-        l += 1
-        index = np.where(labels == lab)
-        O_hat[l] = index[0]
-
-    perc = perc_exact_recovery(O_hat, O_bar)
-
-    return perc
-
-def operation_model_1_SKmeans(dict, seed):
-    """ Operation to perform Monte carlo simulation
-    Input
-    -----
-        dict : dictionnary containing
-                - d1 : dimension of the first sample
-                - d2 : dimension of the second sample
-                - n_sample : sample's length
-    """
-    SKmeans = robjects.globalenv['SKmeans']
-    sp.random.seed(1*seed)
-    # initialization
-    # function(K, seed, n_sample, p, d, copoc, m, k)
-    labels = SKmeans(K = dict['K'], seed = seed, n_sample = dict['n_sample'], p = dict['p'], d = dict['d'], m = dict['m'], k = dict['k'])
-    sizes = labels[1]
-    labels = np.array(labels[0])
-    label = np.unique(labels)
-    O_hat = {}
-
-    for lab, l in enumerate(label):
-        lab += 1
-        index = np.where(labels == lab)
-        O_hat[l] = np.int_(index[0])
-    O_bar = {}
-    l = 0
-    _d = 0
-    for d_ in sizes:
-        l += 1
-        O_bar[l] = np.arange(_d, _d + d_)
-        _d += d_
-
-    perc = perc_exact_recovery(O_hat, O_bar)
-
-    return perc
+    # Step 9: Return the exact recovery percentage
+    return perc  # This value indicates how well the clustering algorithm was able to recover the original clusters
 
 d = 200
-#m_sample = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
 m_sample = [3,6,9,12,15,18,21,24,27,30]
 n = 10000
-n_iter = 100
+n_iter = 10 #100
 K = 10
-p = 0.5
+p = 0.9
 pool = mp.Pool(processes= 10, initializer=init_pool_processes)
 mode = "ECO"
 
@@ -267,16 +216,7 @@ for m in m_sample:
 
     if mode == "ECO":
 
-        result_objects = [pool.apply_async(operation_model_1_ECO, args = (input,i)) for i in range(n_iter)]
-    
-    if mode == "HC":
-        
-        result_objects = [pool.apply_async(operation_model_1_HC, args = (input,i)) for i in range(n_iter)]
-    
-    if mode == "SKmeans":
-
-        result_objects = [pool.apply_async(operation_model_1_SKmeans, args = (input,i)) for i in range(n_iter)]
-
+        result_objects = [pool.apply_async(operation_model_5_ECO, args = (input,i)) for i in range(n_iter)]
 
     results = [r.get() for r in result_objects]
 
@@ -290,6 +230,4 @@ pool.close()
 pool.join()
 
 
-df.to_csv('results_model_3_ECO_200_mixing_p0.5_1_m.csv')
-
-## Attention, results_model_3_ECO_1600_mixing_p1.0_1_m.csv a été enregistré avec l'intitulé results_model_3_ECO_200_mixing_p0.9_1_m.csv
+df.to_csv('results_model_5_ECO_200_mixing_p0.9_m.csv')
