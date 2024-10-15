@@ -36,10 +36,10 @@ def theta(R):
     # Compute the w-madogram using the formula
     mado = (1/Tnb) * np.sum(value_1 - value_2)
 
-    # Normalize the computed w-madogram
+    # Compute the extremal coefficient
     value = (mado + 1/2) / (1/2 - mado)
 
-    return value  # Return the final computed w-madogram
+    return value  # Return the final computed extremal coefficient
 
 def SECO(R, clst):
     """
