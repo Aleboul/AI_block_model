@@ -193,7 +193,7 @@ for sparsity_index in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 
             V = ut.rank_transformation(X)
 
             # Convert transformed data to DataFrame
-            export = pd.DataFrame(X)
+            export = pd.DataFrame(V)
 
             # Save DataFrame to CSV file
             export.to_csv("results_model_3/data/data/" +
