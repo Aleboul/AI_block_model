@@ -179,7 +179,7 @@ for k in _k_:
             V = ut.rank_transformation(X)
 
             # Convert transformed data to DataFrame
-            export = pd.DataFrame(V)
+            export = pd.DataFrame(X)
 
             # Export DataFrame to CSV file
             export.to_csv("results_model_2/data/data/" +
